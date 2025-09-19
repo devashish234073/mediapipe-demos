@@ -134,6 +134,9 @@
 
         const trailCount = 6;
         const toruses = [];
+        // History buffer for smoothing
+        const maxHistory = 200; // store last 200 positions
+        const handHistory = [];
         for (let i = 0; i < trailCount; i++) {
             const t = new THREE.Mesh(geometry, material);
             t.position.x += 0.1*i;
@@ -150,11 +153,22 @@
                 const x = (landmark.x - 0.5) * 4;
                 const y = -(landmark.y - 0.5) * 3;
                 const z = -landmark.z * 2;
+                // Push new position into history buffer
+                handHistory.push(new THREE.Vector3(x, y, z));
+                if (handHistory.length > maxHistory) handHistory.shift();
+                // Update trailing toruses using buffered positions
                 for (let i = 0; i < trailCount; i++) {
                     let torus = toruses[i];
-                    torus.position.set(x+0.1*i, y, z);
-                    torus.rotation.x += 0.05;
-                    torus.rotation.y += 0.05;
+                    const delay = i * 10; // distance in frames behind
+                    const idx = Math.max(0, handHistory.length - 1 - delay);
+                    const pos = handHistory[idx];
+                    
+                    if (pos) {
+                        torus.position.copy(pos);
+                        torus.rotation.x += 0.05;
+                        torus.rotation.y += 0.05;
+                        torus.material.transparent = true;
+                    }
                 }
             }
         }
