@@ -143,6 +143,8 @@
                 const z = -landmark.z * 2;
 
                 torus.position.set(x, y, z);
+                torus.rotation.x += 0.05;
+                torus.rotation.y += 0.05;
             }
         }
         startCamera().then(() => {
