@@ -6,6 +6,8 @@ Changes to it was added in stages and at each stage a new branch was created.
 
 Different branches can be navigated to see how changes were added from boilerplate hand detection of mediapipe to any three.js object following the hand
 
+The switch-branches-demo.bat can be run directly two switch between all these branches automatically and satying in each for 10 seconds, so that you can see the changes
+
 <img width="1691" height="876" alt="image" src="https://github.com/user-attachments/assets/1b166be1-628f-47a1-9899-99b917b0edf9" />
 
 ## Details of Branch-wise Features
