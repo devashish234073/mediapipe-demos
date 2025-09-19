@@ -12,3 +12,5 @@ for %%B in (%branches%) do (
 )
 
 echo Done switching branches.
+git checkout main
+echo Back to main now..
