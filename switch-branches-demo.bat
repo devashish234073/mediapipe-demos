@@ -11,6 +11,6 @@ for %%B in (%branches%) do (
     timeout /t 10 /nobreak
 )
 
-echo Done switching branches.
+echo Done switching branches
 git checkout main
-echo Back to main now..
+echo Back to main now
