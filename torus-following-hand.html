@@ -129,9 +129,9 @@
 
             if (latestHands && latestHands.length > 0) {
                 const landmark = latestHands[0][9]; // Use middle finger base as reference
-                const x = landmark.x;
-                const y = landmark.y;
-                const z = landmark.z;
+                const x = (landmark.x - 0.5) * 4;
+                const y = -(landmark.y - 0.5) * 3;
+                const z = -landmark.z * 2;
 
                 torus.position.set(x, y, z);
             }
