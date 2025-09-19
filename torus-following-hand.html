@@ -132,6 +132,15 @@
         const torus = new THREE.Mesh(geometry, material);
         scene.add(torus);
 
+        const trailCount = 6;
+        const toruses = [];
+        for (let i = 0; i < trailCount; i++) {
+            const t = new THREE.Mesh(geometry, material);
+            t.position.x += 0.1*i;
+            scene.add(t);
+            toruses.push(t);
+        }
+
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera3);
