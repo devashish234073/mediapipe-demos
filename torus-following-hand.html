@@ -129,8 +129,8 @@
             metalness: 0.4,
             roughness: 0.5
         });
-        const torus = new THREE.Mesh(geometry, material);
-        scene.add(torus);
+        //const torus = new THREE.Mesh(geometry, material);
+        //scene.add(torus);
 
         const trailCount = 6;
         const toruses = [];
@@ -150,10 +150,12 @@
                 const x = (landmark.x - 0.5) * 4;
                 const y = -(landmark.y - 0.5) * 3;
                 const z = -landmark.z * 2;
-
-                torus.position.set(x, y, z);
-                torus.rotation.x += 0.05;
-                torus.rotation.y += 0.05;
+                for (let i = 0; i < trailCount; i++) {
+                    let torus = toruses[i];
+                    torus.position.set(x+0.1*i, y, z);
+                    torus.rotation.x += 0.05;
+                    torus.rotation.y += 0.05;
+                }
             }
         }
         startCamera().then(() => {
