@@ -124,11 +124,11 @@
 
         // Create torus
         const geometry = new THREE.TorusGeometry(0.1, 0.03, 10, 100);
-        const material = new THREE.MeshStandardMaterial({
+        const material = createAdvancedMaterial();/*new THREE.MeshStandardMaterial({
             color: 0xffaa00,
             metalness: 0.4,
             roughness: 0.5
-        });
+        });*/
         //const torus = new THREE.Mesh(geometry, material);
         //scene.add(torus);
 
@@ -178,6 +178,88 @@
         startCamera().then(() => {
             animate();
         });
+
+        function createAdvancedMaterial() {
+            const material = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 },
+                baseColor: { value: new THREE.Color(0xff5500) },
+                glowColor: { value: new THREE.Color(0xffaa00) },
+                darkColor: { value: new THREE.Color(0x222222) }
+            },
+            vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        
+        void main() {
+            vUv = uv;
+            vPosition = position;
+            vNormal = normal;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+        fragmentShader: `
+        uniform float time;
+        uniform vec3 baseColor;
+        uniform vec3 glowColor;
+        uniform vec3 darkColor;
+        
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        
+        // Noise functions for creating organic patterns
+        float rand(vec2 n) { 
+            return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+        }
+
+        float noise(vec2 p){
+            vec2 ip = floor(p);
+            vec2 u = fract(p);
+            u = u*u*(3.0-2.0*u);
+            
+            float res = mix(
+                mix(rand(ip), rand(ip+vec2(1.0,0.0)), u.x),
+                mix(rand(ip+vec2(0.0,1.0)), rand(ip+vec2(1.0,1.0)), u.x), u.y);
+            return res*res;
+        }
+        
+        // Create fire-like patterns
+        float firePattern(vec2 uv, float t) {
+            uv.y += t * 0.5;
+            uv.x += sin(uv.y * 2.0 + t) * 0.2;
+            
+            float n = noise(uv * 5.0);
+            n += noise(uv * 10.0) * 0.5;
+            n += noise(uv * 20.0) * 0.25;
+            
+            return n;
+        }
+        
+        void main() {
+            // Create charcoal pattern
+            float pattern = firePattern(vUv * 2.0, time);
+            
+            // Create glowing ember effect
+            float glow = sin(vUv.x * 10.0 + time * 2.0) * 0.5 + 0.5;
+            glow *= cos(vUv.y * 8.0 + time * 1.5) * 0.5 + 0.5;
+            
+            // Mix between dark charcoal and glowing areas
+            float charcoalMask = smoothstep(0.3, 0.6, pattern);
+            float glowMask = smoothstep(0.6, 0.9, glow * pattern);
+            
+            // Final color calculation
+            vec3 finalColor = mix(darkColor, baseColor, charcoalMask);
+            finalColor = mix(finalColor, glowColor, glowMask);
+            
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
+    `
+        // Removed lights: true to avoid the uniform error
+        });
+    return material;
+}
     </script>
 </body>
 </html>
