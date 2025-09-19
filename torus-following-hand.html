@@ -38,14 +38,24 @@
         <canvas id="mp-canvas"></canvas>
     </div>
 
+    <!-- Right: webcam + three.js object -->
+    <div class="panel">
+        <div class="overlay-ui">Three.js view — webcam + 3D object</div>
+        <video id="bg_video" autoplay playsinline muted></video>
+        <div class="three-wrap" id="three-wrap"></div>
+    </div>
+
     <!-- libs -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 
     <script>
         const videoElem = document.getElementById('input_video');
+        const bgVideo = document.getElementById('bg_video');
         const mpCanvas = document.getElementById('mp-canvas');
         const mpCtx = mpCanvas.getContext('2d');
+        let latestHands = null;
 
         // Mediapipe Hands setup
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
@@ -61,7 +71,9 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 videoElem.srcObject = stream;
+                bgVideo.srcObject = stream;
                 await videoElem.play();
+                await bgVideo.play();
                 requestAnimationFrame(processVideo);
             } catch (e) {
                 alert('Camera error: ' + e.message);
@@ -89,9 +101,44 @@
                 }
             }
             mpCtx.restore();
+            latestHands = results.multiHandLandmarks && results.multiHandLandmarks.length ? results.multiHandLandmarks : null;
         }
 
-        startCamera();
+        // Three.js setup
+        const threeWrap = document.getElementById('three-wrap');
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        threeWrap.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();
+        const camera3 = new THREE.PerspectiveCamera(40, threeWrap.clientWidth / threeWrap.clientHeight, 0.1, 1000);
+        camera3.position.set(0, 0, 2);
+
+        // Create torus
+        const geometry = new THREE.TorusGeometry(0.1, 0.03, 10, 100);
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffaa00,
+            metalness: 0.4,
+            roughness: 0.5
+        });
+        const torus = new THREE.Mesh(geometry, material);
+        scene.add(torus);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera3);
+
+            if (latestHands && latestHands.length > 0) {
+                const landmark = latestHands[0][9]; // Use middle finger base as reference
+                const x = landmark.x;
+                const y = landmark.y;
+                const z = landmark.z;
+
+                torus.position.set(x, y, z);
+            }
+        }
+        startCamera().then(() => {
+            animate();
+        });
     </script>
 </body>
 </html>
