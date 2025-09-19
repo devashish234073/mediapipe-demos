@@ -168,6 +168,9 @@
                         torus.rotation.x += 0.05;
                         torus.rotation.y += 0.05;
                         torus.material.transparent = true;
+                        // Make trailing toruses smaller
+                        const scale = 1 - i * 0.05;
+                        torus.scale.setScalar(scale);
                     }
                 }
             }
